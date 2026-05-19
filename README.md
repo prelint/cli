@@ -1,3 +1,3 @@
 # Prelint CLI
 
-Public distribution mirror for the Prelint CLI. Populated by the release workflow.
+Command-line interface for [Prelint](https://prelint.com).
