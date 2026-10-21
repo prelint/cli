@@ -2,7 +2,7 @@
 # Prelint CLI installer
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/prelint/cli/main/install.sh | sh
+#   curl -fsSL https://install.prelint.com | sh
 #
 # Environment variables:
 #   PRELINT_VERSION       Version to install (default: latest, e.g. v0.1.0)
