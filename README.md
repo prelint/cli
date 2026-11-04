@@ -30,6 +30,8 @@ Pin a version or change the install directory:
 curl -fsSL https://install.prelint.com | PRELINT_VERSION=v0.1.0 sh
 ```
 
+A set version also turns off automatic updates, so that version stays installed.
+
 The default install directory is `~/.local/bin`. To install system-wide, set `PRELINT_INSTALL_DIR` and run with sudo:
 
 ```bash
@@ -59,15 +61,19 @@ Windows install via package manager is not yet wired up. Download the `.exe` fro
 
 ## Update
 
+The CLI updates itself. Once a day, when you run a command, it asks github.com for the latest `prelint/cli` release. The request runs in the background and carries only the CLI version. When a newer release exists, the same background process installs it. The command you ran does not wait. The new version runs from your next command, and on a terminal it prints what changed. To read the notes again, run `prelint changelog`.
+
+A Homebrew install updates itself only when you allow it. `prelint init` asks once on a terminal. If you say yes, the background process runs `brew upgrade prelint`. If you say no, the CLI prints a notice once a day. To change the answer, run `prelint config set homebrew_auto_update true` or `false`. `PRELINT_HOMEBREW_AUTO_UPDATE=1` turns it on for one shell.
+
+To update now:
+
 ```bash
 prelint update
 ```
 
-A Homebrew install prints `brew upgrade prelint` instead.
+On a Homebrew install, it runs `brew upgrade prelint`. Homebrew checks the download against the SHA256 in the formula that each release publishes to `prelint/homebrew-tap`. On other installs, it checks the download against the `SHA256SUMS` file of the same release. This catches a corrupt download. It does not protect against a compromised release, because both files come from the same place.
 
-`prelint update` checks the download against the `SHA256SUMS` file of the same release. This catches a corrupt download. It does not protect against a compromised release, because both files come from the same place.
-
-Once a day, when you run a command, the CLI asks github.com for the latest `prelint/cli` release. The request runs in the background and carries only the CLI version. When a newer release exists, the CLI prints a one-line notice on a terminal, and `prelint doctor` shows it. To turn the check off, set `PRELINT_NO_UPDATE_CHECK=1`.
+If an automatic update fails, for example because the install folder needs root, the CLI prints the error with the available-version notice. `prelint doctor` shows it in `update_error`. To turn off automatic updates on a direct install, run `prelint config set auto_update false`. `PRELINT_NO_AUTO_UPDATE=1` turns them off on every install. To turn off the check too, set `PRELINT_NO_UPDATE_CHECK=1`.
 
 ## Authentication
 
@@ -85,7 +91,7 @@ Login uses OAuth 2.0 with PKCE via browser rendezvous (no local port binding), s
 curl -fsSL https://install.prelint.com | sh && prelint login && prelint init
 ```
 
-`prelint init` puts the repository in a project, writes `prelint.json` at the repository root, adds the `prelint-setup` skill for your coding agent, and prints what is left to do. A project set in the dashboard wins, so the file follows it. No command reads `.prelint.json`. If a checkout holds only that file, run `prelint init`. `init` exits 0 after the write. A `--run-skill` run that does not finish exits 9. Run `prelint doctor --repo` to print the checklist again. It exits 8 while an item is left, so a script under `set -e` allows that with `|| [ $? -eq 8 ]`.
+`prelint init` puts the repository in a project, writes `prelint.json` at the repository root, offers to turn on documents and reviews, adds the `prelint-setup` skill for your coding agent, and prints what is left to do. A `prelint.json` the server would reject does not stop it. The checklist names the problem, and the skill fixes it. A project set in the dashboard wins, so the file follows it. No command reads `.prelint.json`. If a checkout holds only that file, run `prelint init`. `init` exits 0 after the write. A `--run-skill` run that does not finish exits 9. Run `prelint doctor --repo` to print the checklist again. It exits 8 while an item is left, so a script under `set -e` allows that with `|| [ $? -eq 8 ]`. Documents that are off count as an item (`documents_disabled`), so a repository that uses reviews only also exits 8. It also shows whether your documents became knowledge, and why not when they did not.
 
 ## Usage
 
@@ -97,6 +103,7 @@ prelint ingest --text "..." --source "notes.md"
 prelint doctor                     # diagnostic (JSON envelope)
 prelint init --run-skill           # also run the skill in Claude Code or Codex, with no question
 prelint init --run-skill=codex     # name the agent that runs it
+prelint init --enable-documents    # turn on documents with no question (--enable-reviews for reviews)
 prelint skill install              # add the prelint-setup skill by hand, or again after an upgrade
 ```
 

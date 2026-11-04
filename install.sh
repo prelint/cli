@@ -5,7 +5,8 @@
 #   curl -fsSL https://install.prelint.com | sh
 #
 # Environment variables:
-#   PRELINT_VERSION       Version to install (default: latest, e.g. v0.1.0)
+#   PRELINT_VERSION       Version to install (default: latest, e.g. v0.1.0).
+#                         A set version also turns off automatic updates.
 #   PRELINT_INSTALL_DIR   Install location (default: ~/.local/bin)
 #
 # Sources the binary from https://github.com/prelint/cli/releases.
@@ -117,6 +118,18 @@ main() {
   mv "${artifact}" "${PRELINT_INSTALL_DIR}/prelint"
 
   info "installed: ${PRELINT_INSTALL_DIR}/prelint"
+
+  # Under sudo, the setting goes to the config of the person who ran sudo.
+  as_user=""
+  if [ "$(id -u)" = "0" ] && [ -n "${SUDO_USER:-}" ] && [ "${SUDO_USER}" != "root" ]; then
+    as_user="sudo -H -u ${SUDO_USER}"
+  fi
+  # A version without automatic updates rejects the key, and has nothing to turn off.
+  if [ "${PRELINT_VERSION}" != "latest" ] \
+    && ${as_user} "${PRELINT_INSTALL_DIR}/prelint" config set auto_update false >/dev/null 2>&1; then
+    info "automatic updates are off, so ${version} stays installed"
+    info "to turn them on, run: prelint config set auto_update true"
+  fi
 
   case ":${PATH}:" in
     *":${PRELINT_INSTALL_DIR}:"*)
